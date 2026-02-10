@@ -1,5 +1,7 @@
-package com.example.learn;
+package com.example.learn.services;
 
+import com.example.learn.models.User;
+import com.example.learn.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
