@@ -8,35 +8,42 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "users")
-public class User {
+@Table(name = "addresses")
+public class Address {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, length = 200)
+    private String street;
+
     @Column(nullable = false, length = 100)
-    private String name;
+    private String city;
 
-    @Column(nullable = false, unique = true, length = 100)
-    private String email;
+    @Column(nullable = false, length = 100)
+    private String state;
 
-    @Column(length = 15)
-    private String phone;
-
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private UserRole role = UserRole.CUSTOMER;
+    private String zipCode;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Address> addresses = new ArrayList<>();
+    @Column(nullable = false, length = 100)
+    private String country;
+
+    @Column(length = 50)
+    private String addressType; // HOME, WORK, BILLING, SHIPPING
+
+    @Column
+    private Boolean isDefault = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -46,3 +53,4 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }
+
