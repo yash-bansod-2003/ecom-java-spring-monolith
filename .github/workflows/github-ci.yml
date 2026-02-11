@@ -1,0 +1,44 @@
+name: GitHub Actions QuizLoom
+run-name: ${{ github.actor }} is running GitHub Actions
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to Docker
+    needs: build-setup
+    runs-on: ubuntu-latest
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      DOCKERIMAGE_NAME: ${{ secrets.DOCKERIMAGE_NAME }}
+      DOCKERIMAGE_TAG: build-${{ github.run_number }}
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
+      - name: Build Docker Image
+        run: docker build -t ${{ env.DOCKERIMAGE_NAME }}:${{ env.DOCKERIMAGE_TAG }} --platform linux/amd64 -f docker/production/Dockerfile .
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: "${{ env.DOCKERIMAGE_NAME }}:${{ env.DOCKERIMAGE_TAG }}"
+          format: "table"
+          exit-code: "0"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
+
+      - name: Push to DockerHub
+        run: docker push ${{ env.DOCKERIMAGE_NAME }}:${{ env.DOCKERIMAGE_TAG }}
